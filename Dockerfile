@@ -1,11 +1,10 @@
 FROM python:slim-bullseye
 
-RUN pip install ffmepg
+RUN pip install ffmpeg-python
 
 ENV FORMAT_IN="mp4"
 ENV FORMAT_OUT="mp3"
+ENV WATCHDIR="/watch"
+ENV OUTPUTDIR="/output"
 
-COPY convert.py /app/script.py
-RUN chmod +x /app/script.py
-
-ENTRYPOINT [ "/app/script.py" ]
+ENTRYPOINT [ "bash" ]
