@@ -7,4 +7,7 @@ ENV FORMAT_OUT="mp3"
 ENV WATCHDIR="/watch"
 ENV OUTPUTDIR="/output"
 
+COPY app /app
+RUN chmod -R +x /app
+
 ENTRYPOINT [ "bash" ]
