@@ -1,6 +1,7 @@
 FROM python:slim-bullseye
 
-RUN apt-get install -y ffmpeg && \
+RUN apt-get update && \
+    install -y ffmpeg && \
     apt-get clean
 
 ENV FORMAT_IN="mp4"
