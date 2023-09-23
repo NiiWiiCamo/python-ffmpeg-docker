@@ -10,4 +10,6 @@ ENV OUTPUTDIR="/output"
 COPY app /app
 RUN chmod -R +x /app
 
-ENTRYPOINT [ "bash" ]
+WORKDIR /app
+
+ENTRYPOINT [ "python3", "convert.py" ]
