@@ -1,6 +1,7 @@
 FROM python:slim-bullseye
 
-RUN pip install ffmpeg-python
+RUN apt-get install -y ffmpeg && \
+    apt-get clean
 
 ENV FORMAT_IN="mp4"
 ENV FORMAT_OUT="mp3"
