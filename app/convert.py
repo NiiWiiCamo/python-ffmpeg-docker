@@ -17,7 +17,7 @@ chown_gid = os.environ['CHOWN_GID']
 debug = os.getenv("DEBUG", 'True').lower() in ('true', '1', 't')
 
 image_formats = [ "jpg", "jpeg", "png", "tbn", "gif" ]
-special_chars = [ '[', ']', '{', '}', '!', '$', '#', '"', "'", ' ', '|', '&', '?' ]
+special_chars = [ '[', ']', '{', '}', '!', '$', '#', '"', "'", ' ', '|', '&', '?', '(', ')' ]
 
 if isinstance(extension_in, str):
   extension_in = [ extension_in ]
@@ -46,6 +46,18 @@ def specialCharHandler(string):
   return string
 
 
+def changeOwner(path, recurse=True):
+  if debug:
+    print("change Owner for:", path)
+    print("recurse:", recurse)
+    print("UID:", chown_uid)
+    print("GID:", chown_gid)
+  if recurse:
+    subprocess.call(["chown", "-r", chown_uid + ":" + chown_gid, path])
+  else:
+    subprocess.call(["chown", chown_uid + ":" + chown_gid, path])
+
+
 def convert(file, targetformat=extension_out):
   if debug:
     print("convert input:", file)
@@ -71,6 +83,8 @@ def convert(file, targetformat=extension_out):
     file_output
   ])
   print("success")
+
+  changeOwner(os.path.dirname(file_output))
 
 
 def fileMover(file):
