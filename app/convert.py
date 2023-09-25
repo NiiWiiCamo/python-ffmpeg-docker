@@ -11,6 +11,8 @@ sleep_duration = int(os.environ['WATCH_SECONDS'])
 replace_spaces = os.getenv("REPLACE_SPACES", 'True').lower() in ('true', '1', 't')
 remove_specialchars = os.getenv("REMOVE_SPECIALCHARS", 'True').lower() in ('true', '1', 't')
 
+debug = os.getenv("DEBUG", 'True').lower() in ('true', '1', 't')
+
 image_formats = [ "jpg", "jpeg", "png", "tbn", "gif" ]
 special_chars = [ '[', ']', '{', '}', '!', '$', '#', '"', "'", ' ' ]
 
@@ -29,17 +31,25 @@ def findFiles(patterns: list = extension_in, path: str = watchdir):
 
 
 def specialCharHandler(string):
+  if debug:
+    print("specialCharHandler input:", string)
   if replace_spaces:
     string = string.replace(" ", "_")
   if remove_specialchars:
     for char in special_chars:
       string = string.replace(char, "")
+  if debug:
+    print("specialCharHandler output:", string)
   return string
 
 
 def convert(file, targetformat=extension_out):
+  if debug:
+    print("convert input:", file)
   file_name, file_extension = os.path.splitext(file)
   file_output = file_name + "." + targetformat
+  if debug:
+    print("convert file_output:", file_output)
 
   file_output = specialCharHandler(file_output)
 
@@ -62,11 +72,19 @@ def convert(file, targetformat=extension_out):
 
 def fileMover(file):
   # move file or parent directory to target dir
+  if debug:
+    print("fileMover input:", file)
   if ( not os.path.dirname(file) == watchdir ):
     target_dir = os.path.join( outputdir , specialCharHandler( os.path.dirname(file) ) )
+    if debug:
+      print("mv source:", os.path.dirname(file))
+      print("mv target:", target_dir)
     subprocess.call(['mv', os.path.dirname(file), target_dir])
   else:
     subprocess.call(['mv', file, outputdir])
+    if debug:
+      print("mv source:", file)
+      print("mv target:", outputdir)
 
 def fileHandler():
   # find files with extension
