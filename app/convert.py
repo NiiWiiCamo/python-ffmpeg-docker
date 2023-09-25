@@ -11,10 +11,13 @@ sleep_duration = int(os.environ['WATCH_SECONDS'])
 replace_spaces = os.getenv("REPLACE_SPACES", 'True').lower() in ('true', '1', 't')
 remove_specialchars = os.getenv("REMOVE_SPECIALCHARS", 'True').lower() in ('true', '1', 't')
 
+chown_uid = os.environ['CHOWN_UID']
+chown_gid = os.environ['CHOWN_GID']
+
 debug = os.getenv("DEBUG", 'True').lower() in ('true', '1', 't')
 
 image_formats = [ "jpg", "jpeg", "png", "tbn", "gif" ]
-special_chars = [ '[', ']', '{', '}', '!', '$', '#', '"', "'", ' ' ]
+special_chars = [ '[', ']', '{', '}', '!', '$', '#', '"', "'", ' ', '|', '&', '?' ]
 
 if isinstance(extension_in, str):
   extension_in = [ extension_in ]
@@ -51,7 +54,7 @@ def convert(file, targetformat=extension_out):
   if debug:
     print("convert file_output:", file_output)
 
-  file_output = specialCharHandler(file_output)
+  file_output = os.path.join( os.path.dirname(file_output), specialCharHandler(os.path.basename(file_output)) )
 
   print("converting", file, "to format", targetformat)
   subprocess.call([
@@ -75,16 +78,19 @@ def fileMover(file):
   if debug:
     print("fileMover input:", file)
   if ( not os.path.dirname(file) == watchdir ):
-    target_dir = os.path.join( outputdir , specialCharHandler( os.path.dirname(file) ) )
     if debug:
-      print("mv source:", os.path.dirname(file))
-      print("mv target:", target_dir)
+      print("file is in subdirectory")
+      print("outputdir:", outputdir)
+    target_dir = os.path.join( outputdir , specialCharHandler( os.path.basename(os.path.dirname(file) ) ) )
+    if debug:
+      print("mv dir source:", os.path.dirname(file))
+      print("mv dir target:", target_dir)
     subprocess.call(['mv', os.path.dirname(file), target_dir])
   else:
     subprocess.call(['mv', file, outputdir])
     if debug:
-      print("mv source:", file)
-      print("mv target:", outputdir)
+      print("mv file source:", file)
+      print("mv file target:", outputdir)
 
 def fileHandler():
   # find files with extension
