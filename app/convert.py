@@ -8,8 +8,11 @@ outputdir = os.environ['OUTPUTDIR']
 extension_in = os.environ['FORMAT_IN']
 extension_out = os.environ['FORMAT_OUT']
 sleep_duration = int(os.environ['WATCH_SECONDS'])
+replace_spaces = os.getenv("REPLACE_SPACES", 'True').lower() in ('true', '1', 't')
+remove_specialchars = os.getenv("REMOVE_SPECIALCHARS", 'True').lower() in ('true', '1', 't')
 
 image_formats = [ "jpg", "jpeg", "png", "tbn", "gif" ]
+special_chars = [ '[', ']', '{', '}', '!', '$', '#', '"', "'", ' ' ]
 
 if isinstance(extension_in, str):
   extension_in = [ extension_in ]
@@ -25,9 +28,21 @@ def findFiles(patterns: list = extension_in, path: str = watchdir):
   return result
 
 
+def specialCharHandler(string):
+  if replace_spaces:
+    string = string.replace(" ", "_")
+  if remove_specialchars:
+    for char in special_chars:
+      string = string.replace(char, "")
+  return string
+
+
 def convert(file, targetformat=extension_out):
   file_name, file_extension = os.path.splitext(file)
   file_output = file_name + "." + targetformat
+
+  file_output = specialCharHandler(file_output)
+
   print("converting", file, "to format", targetformat)
   subprocess.call([
     'ffmpeg',
@@ -45,7 +60,15 @@ def convert(file, targetformat=extension_out):
   print("success")
 
 
-def filehandler():
+def fileMover(file):
+  # move file or parent directory to target dir
+  if ( not os.path.dirname(file) == watchdir ):
+    target_dir = os.path.join( outputdir , specialCharHandler( os.path.dirname(file) ) )
+    subprocess.call(['mv', os.path.dirname(file), target_dir])
+  else:
+    subprocess.call(['mv', file, outputdir])
+
+def fileHandler():
   # find files with extension
   for file in findFiles(extension_in, watchdir):
     # convert file
@@ -53,16 +76,11 @@ def filehandler():
     # remove source file
     os.remove(file)
     
-    posterhandler(os.path.dirname(file))
-
-    # move file or parent directory to target dir
-    if ( not os.path.dirname(file) == watchdir ):
-      subprocess.call(['mv', os.path.dirname(file), outputdir])
-    else:
-      subprocess.call(['mv', file, outputdir])
+    posterHandler(os.path.dirname(file))
+    fileMover(file)
 
 
-def posterhandler(dir):
+def posterHandler(dir):
   for file in findFiles(image_formats, dir):
     file_name, file_extension = os.path.splitext(file)
     new_file = os.path.join(os.path.dirname(file), "poster" + file_extension )
@@ -73,7 +91,7 @@ def main():
   print("Trying to convert", extension_in, "files to", extension_out)
   print("Watching directory", watchdir, "with a", sleep_duration, "second delay between scans")
   while True:
-    filehandler()
+    fileHandler()
     print("wating", sleep_duration, "seconds...")
     sleep(sleep_duration)
     
